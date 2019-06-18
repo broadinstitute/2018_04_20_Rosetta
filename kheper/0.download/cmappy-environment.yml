@@ -1,0 +1,10 @@
+name: kheper-cmappy
+channels:
+- conda-forge
+- bioconda 
+dependencies:
+- bioconda::cmappy=4.0.1
+- conda-forge::jupyter=1.0.0
+- conda-forge::ipykernel=5.1.1
+- conda-forge::nb_conda_kernels=2.2.2
+- conda-forge::scikit-learn=0.21.2
