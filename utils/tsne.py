@@ -154,7 +154,7 @@ def tsne(X = Math.array([]), no_dims = 2, initial_dims = 50, perplexity = 30.0):
 		# Compute current value of cost function
 		if (iter + 1) % 10 == 0:
 			C = Math.sum(P * Math.log(P / Q));
-			print("Iteration ", (iter + 1), ": error is ", C)
+# 			print("Iteration ", (iter + 1), ": error is ", C)
 
 		# Stop lying about P-values
 		if iter == 100:
