@@ -34,7 +34,12 @@ def replicateCorrs(inDf,pertColName,featColNames,plotEnabled):
     
     repCorrDf=pd.DataFrame(index = uniqPert,columns=['RepCor']) 
     
-    for u in uniqPert:
+    
+    repSizeDF=df.groupby([pertColName]).size().reset_index()
+    highRepComp=repSizeDF[repSizeDF[0]>1][pertColName].tolist()
+
+    
+    for u in highRepComp:
         df1=df[df[pertColName]==u].drop_duplicates().reset_index(drop=True)
 #         df2=df[df[pertColName]!=u].drop_duplicates().reset_index(drop=True)
 
@@ -66,14 +71,13 @@ def replicateCorrs(inDf,pertColName,featColNames,plotEnabled):
 # #         randCorr = [x for x in randCorr if str(x) != 'nan']
 #         randC=randC+randCorr
 # #     print(randC)    
+    print('here2')
     randC_v2=[]    
-    for i in range(10):
+    for i in range(2):
         uniqeSamplesFromEachPurt=inDf.groupby(pertColName)[featColNames].apply(lambda s: s.sample(1))
         corrMatAcrossPurtbs=uniqeSamplesFromEachPurt.loc[:,featColNames].T.corr()
         randCorrVals=list(corrMatAcrossPurtbs.values[np.triu_indices(corrMatAcrossPurtbs.shape[0], k = 1)])
     randC_v2=randC_v2+randCorrVals
-    
-    perc95=np.percentile(randC_v2, 90);
         
     if 0:
         fig, axes = plt.subplots(figsize=(5,3))
@@ -87,20 +91,26 @@ def replicateCorrs(inDf,pertColName,featColNames,plotEnabled):
         
     repC = [repC for repC in repC if str(repC) != 'nan']
     randC_v2 = [randC_v2 for randC_v2 in randC_v2 if str(randC_v2) != 'nan']    
+    
+    perc95=np.percentile(randC_v2, 90);
+    rep10=np.percentile(repC, 10);
+    
     if plotEnabled:
         fig, axes = plt.subplots(figsize=(5,4))
 #         sns.kdeplot(randC_v2, bw=.1, label="random pairs",ax=axes);axes.set_xlabel('CC');
 #         sns.kdeplot(repC, bw=.1, label="replicate pairs",ax=axes,color='r');axes.set_xlabel('CC');
-        sns.distplot(randC_v2,kde=True,hist=True,bins=20,label="random pairs",ax=axes,norm_hist=True);
-        sns.distplot(repC,kde=True,hist=True,bins=20,label="replicate pairs",ax=axes,norm_hist=True,color='r');   
+        sns.distplot(randC_v2,kde=True,hist=True,bins=100,label="random pairs",ax=axes,norm_hist=True);
+        sns.distplot(repC,kde=True,hist=True,bins=100,label="replicate pairs",ax=axes,norm_hist=True,color='r');   
 
         #         perc5=np.percentile(repCC, 50);axes.axvline(x=perc5,linestyle=':',color='darkorange');
         axes.axvline(x=perc95,linestyle=':');
+        axes.axvline(x=0,linestyle=':');
         axes.legend(loc=2);#axes.set_title('');
         axes.set_xlim(-1,1);
         plt.tight_layout() 
         
     repCorrDf['Rand90Perc']=perc95
+    repCorrDf['Rep10Perc']=rep10
 #     highRepPertbs=repCorrDf[repCorrDf['RepCor']>perc95].index.tolist()
 #     return repCorrDf
     return [randC_v2,repC,repCorrDf]
