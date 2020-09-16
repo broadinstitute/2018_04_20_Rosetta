@@ -20,8 +20,6 @@ def readMergedProfiles(dataset_rootDir,dataset,profileType,profileLevel,nRep):
     cp_data_repLevel=pd.read_csv(dataDir+'/CellPainting/replicate_level_cp_'+profileType+'.csv.gz')    
     l1k_data_repLevel=pd.read_csv(dataDir+'/L1000/replicate_level_l1k.csv.gz')  
 
-    ##### filter out low cor replicates
-
     
     # features to analyse
     cp_features=cp_data_repLevel.columns[cp_data_repLevel.columns.str.contains("Cells_|Cytoplasm_|Nuclei_")].tolist()
@@ -29,17 +27,31 @@ def readMergedProfiles(dataset_rootDir,dataset,profileType,profileLevel,nRep):
     
     
     
-    # removes nans and infs
+    ########## removes nans and infs
     l1k_data_repLevel=l1k_data_repLevel.replace([np.inf, -np.inf], np.nan)
     cp_data_repLevel=cp_data_repLevel.replace([np.inf, -np.inf], np.nan)
-    cols2removeCP=[i for i in cp_features if (cp_data_repLevel[i].isnull().sum(axis=0)/cp_data_repLevel.shape[0])>0.05]
+    cols2remove0=[i for i in cp_features if (cp_data_repLevel[i].isnull().sum(axis=0)/cp_data_repLevel.shape[0])>0.05]
     # cols2removeCP=[i for i in cp.columns.tolist() if cp[i].isnull().sum(axis=0)>0]
 #     print(cols2removeCP)
 #     print(len(cp_features))
+
+#     cols2remove0=[i for i in cpFeatures if ((pd_df[i]=='nan').sum(axis=0)/pd_df.shape[0])>0.05]
+    print(cols2remove0)
+    
+#     cols2remove1=cpFeatures[pd_df[cpFeatures].std().values<0.00001].tolist()
+    cols2remove1=cp_data_repLevel[cp_features].std()[cp_data_repLevel[cp_features].std() < 0.0001].index.tolist()
+    print(cols2remove1)    
+    cols2removeCP=cols2remove0+cols2remove1
+#     print(cols2removeCP)
+
     cp_features = list(set(cp_features) - set(cols2removeCP))
 #     print(len(cp_features))
     cp_data_repLevel=cp_data_repLevel.drop(cols2removeCP, axis=1);
     cp_data_repLevel[cp_features] = cp_data_repLevel[cp_features].interpolate()
+    
+    cols2removeCP=[i for i in cp_features if cp_data_repLevel[i].isnull().sum(axis=0)>0]
+    print(cols2removeCP)
+    
 #     cp=cp.fillna(cp.median())
 
     # cols2removeGE=[i for i in l1k.columns if l1k[i].isnull().sum(axis=0)>0]
@@ -52,10 +64,13 @@ def readMergedProfiles(dataset_rootDir,dataset,profileType,profileLevel,nRep):
     
     
     
-    # Per plate scaling 
+    ################ Per plate scaling 
     cp_data_repLevel = standardize_per_catX(cp_data_repLevel,'Metadata_Plate',cp_features);
     l1k_data_repLevel = standardize_per_catX(l1k_data_repLevel,'det_plate',l1k_features);    
-
+    cols2removeCP=[i for i in cp_features if (cp_data_repLevel[i].isnull().sum(axis=0)/cp_data_repLevel.shape[0])>0.05]
+    cp_data_repLevel=cp_data_repLevel.drop(cols2removeCP, axis=1);
+    cp_features = list(set(cp_features) - set(cols2removeCP))
+    cp_data_repLevel[cp_features] = cp_data_repLevel[cp_features].interpolate()
     
     # rename columns that should match
     labelCol='PERT'
@@ -82,6 +97,8 @@ def readMergedProfiles(dataset_rootDir,dataset,profileType,profileLevel,nRep):
     l1k_data_treatLevel=l1k_data_repLevel.groupby(labelCol)[l1k_features].mean().reset_index();
     cp_data_treatLevel=cp_data_repLevel.groupby(labelCol)[cp_features].mean().reset_index();
     
+    cols2removeCP=[i for i in cp_features if cp_data_treatLevel[i].isnull().sum(axis=0)>0]
+    print(cols2removeCP)
     
     ###### define metadata and merge treatment level profiles
 #     dataset:[[cp_columns],[l1k_columns]]
@@ -124,6 +141,7 @@ def readMergedProfiles(dataset_rootDir,dataset,profileType,profileLevel,nRep):
         mergedProfiles_repLevel=pd.merge(cp_data_n_repLevel, l1k_data_n_repLevel, how='inner',on=[labelCol])
     else:
         mergedProfiles_repLevel=[]
+    
     
     
     return mergedProfiles_repLevel,mergedProfiles_treatLevel,cp_features,l1k_features
@@ -258,7 +276,7 @@ def highRepFinder(dataset):
     print('CP: from ',cpRepDF.shape[0],' to ',len(cpHighList))
     cpRepDF=repCorDF['l1k-'+dataset.lower()]
     l1kHighList=cpRepDF[cpRepDF['RepCor']>cpRepDF['Rand90Perc']]['Unnamed: 0'].tolist()
-    highRepPerts=set(l1kHighList) & set(cpHighList)
+    highRepPerts=list(set(l1kHighList) & set(cpHighList))
     print('l1k: from ',cpRepDF.shape[0],' to ',len(l1kHighList))
     print('CP and l1k high rep overlap: ',len(highRepPerts))
     return highRepPerts
