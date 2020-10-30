@@ -73,7 +73,7 @@ def replicateCorrs(inDf,pertColName,featColNames,plotEnabled):
 # #     print(randC)    
     print('here2')
     randC_v2=[]    
-    for i in range(2):
+    for i in range(1):
         uniqeSamplesFromEachPurt=inDf.groupby(pertColName)[featColNames].apply(lambda s: s.sample(1))
         corrMatAcrossPurtbs=uniqeSamplesFromEachPurt.loc[:,featColNames].T.corr()
         randCorrVals=list(corrMatAcrossPurtbs.values[np.triu_indices(corrMatAcrossPurtbs.shape[0], k = 1)])
@@ -122,14 +122,16 @@ def replicateCorrs(inDf,pertColName,featColNames,plotEnabled):
 def plotRepCorrs(allData,pertName):
     corrAll=[]
     for d in range(len(allData)):
-        df=allData[d];
+        df=allData[d][0];
+        features=allData[d][1];
         uniqPert=df[pertName].unique().tolist()
         repC=[]
         randC=[]
         for u in uniqPert:
             df1=df[df[pertName]==u].drop_duplicates().reset_index(drop=True)
             df2=df[df[pertName]!=u].drop_duplicates().reset_index(drop=True)
-            repCorr=np.sort(np.unique(df1.loc[:,df1.columns[df1.columns.str.contains("Metadata")!=True]].T.corr().values))[:-1].tolist()
+            repCorr=np.sort(np.unique(df1.loc[:,features].T.corr().values))[:-1].tolist()
+#             print(repCorr)
             repC=repC+repCorr
             randAllels=df2[pertName].drop_duplicates().sample(df1.shape[0],replace=True).tolist()
             df3=pd.concat([df2[df2[pertName]==i].reset_index(drop=True).iloc[0:1,:] for i in randAllels],ignore_index=True)

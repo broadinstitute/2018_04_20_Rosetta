@@ -10,7 +10,7 @@ from utils.normalize_funcs import standardize_per_catX
 def readMergedProfiles(dataset_rootDir,dataset,profileType,profileLevel,nRep):
 
     #'dataset_name',['folder_name',[cp_pert_col_name,l1k_pert_col_name],[cp_control_val,l1k_control_val]]
-    ds_info_dict={'CDRP':['CDRPBIO-BBBC036-Bray',['Metadata_broad_sample','pert_id_dose'],[['DMSO_0.04'],['DMSO_-666']]],
+    ds_info_dict={'CDRP':['CDRPBIO-BBBC036-Bray',['Metadata_Sample_Dose','pert_sample_dose'],[['DMSO_0.04'],['DMSO_-666']]],
                   'TAORF':['TA-ORF-BBBC037-Rohban',['Metadata_broad_sample','pert_id',],[['DMSO_0.04'],['DMSO_-666']]],
                   'LUAD':['LUAD-BBBC041-Caicedo',['x_mutation_status','allele'],[['DMSO_0.04'],['DMSO_-666']]],
                   'LINCS':['LINCS-Pilot1',['Metadata_pert_id_dose','pert_id_dose'],[[np.nan],['DMSO_-666']]]}
@@ -36,11 +36,11 @@ def readMergedProfiles(dataset_rootDir,dataset,profileType,profileLevel,nRep):
 #     print(len(cp_features))
 
 #     cols2remove0=[i for i in cpFeatures if ((pd_df[i]=='nan').sum(axis=0)/pd_df.shape[0])>0.05]
-    print(cols2remove0)
+#     print(cols2remove0)
     
 #     cols2remove1=cpFeatures[pd_df[cpFeatures].std().values<0.00001].tolist()
     cols2remove1=cp_data_repLevel[cp_features].std()[cp_data_repLevel[cp_features].std() < 0.0001].index.tolist()
-    print(cols2remove1)    
+#     print(cols2remove1)    
     cols2removeCP=cols2remove0+cols2remove1
 #     print(cols2removeCP)
 
@@ -50,7 +50,7 @@ def readMergedProfiles(dataset_rootDir,dataset,profileType,profileLevel,nRep):
     cp_data_repLevel[cp_features] = cp_data_repLevel[cp_features].interpolate()
     
     cols2removeCP=[i for i in cp_features if cp_data_repLevel[i].isnull().sum(axis=0)>0]
-    print(cols2removeCP)
+#     print(cols2removeCP)
     
 #     cp=cp.fillna(cp.median())
 
@@ -97,15 +97,15 @@ def readMergedProfiles(dataset_rootDir,dataset,profileType,profileLevel,nRep):
     l1k_data_treatLevel=l1k_data_repLevel.groupby(labelCol)[l1k_features].mean().reset_index();
     cp_data_treatLevel=cp_data_repLevel.groupby(labelCol)[cp_features].mean().reset_index();
     
-    cols2removeCP=[i for i in cp_features if cp_data_treatLevel[i].isnull().sum(axis=0)>0]
-    print(cols2removeCP)
+#     cols2removeCP=[i for i in cp_features if cp_data_treatLevel[i].isnull().sum(axis=0)>0]
+#     print(cols2removeCP)
     
     ###### define metadata and merge treatment level profiles
 #     dataset:[[cp_columns],[l1k_columns]]
     meta_dict={'CDRP':[['Metadata_moa','Metadata_target'],['CPD_NAME','CPD_TYPE','CPD_SMILES']],
               'TAORF':[['Metadata_moa'],['pert_type']],
               'LUAD':[['Metadata_broad_sample_type','Metadata_pert_type'],[]],
-              'LINCS':[[],[]]}
+              'LINCS':[['Metadata_moa', 'Metadata_alternative_moa'],['moa']]}
     
     
     meta_cp=cp_data_repLevel[[labelCol]+meta_dict[dataset][0]].\
@@ -141,7 +141,6 @@ def readMergedProfiles(dataset_rootDir,dataset,profileType,profileLevel,nRep):
         mergedProfiles_repLevel=pd.merge(cp_data_n_repLevel, l1k_data_n_repLevel, how='inner',on=[labelCol])
     else:
         mergedProfiles_repLevel=[]
-    
     
     
     return mergedProfiles_repLevel,mergedProfiles_treatLevel,cp_features,l1k_features

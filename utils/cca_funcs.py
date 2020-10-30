@@ -1,9 +1,7 @@
-# From: https://github.com/VahidooX/DeepCCA/blob/master/linear_cca.py
+
     
 import numpy
-
-
-def linear_cca(H1, H2, outdim_size):
+def linear_cca_VahidooX(H1, H2, outdim_size):
     """
     An implementation of linear CCA
     # Arguments:
@@ -12,6 +10,7 @@ def linear_cca(H1, H2, outdim_size):
     # Returns
         A and B: the linear transformation matrices 
         mean1 and mean2: the means of data for both views
+    Author: # From: https://github.com/VahidooX/DeepCCA/blob/master/linear_cca.py
     """
     r1 = 1e-4
     r2 = 1e-4

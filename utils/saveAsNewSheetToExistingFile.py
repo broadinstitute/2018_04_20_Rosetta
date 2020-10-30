@@ -4,7 +4,7 @@ import os
 
 # ------------------------------------------------------
 
-# Properly load the workbook
+# Save the input dataframe to the specified sheet name of filename file
 def saveAsNewSheetToExistingFile(filename,newDF,newSheetName):
     if os.path.exists(filename):
 
@@ -26,5 +26,17 @@ def saveAsNewSheetToExistingFile(filename,newDF,newSheetName):
             writer.save()
     else:
         newDF.to_excel(filename, newSheetName)
+        
+    return
+
+
+# ------------------------------------------------------
+
+# saveDF_to_CSV_GZ_no_timestamp
+def saveDF_to_CSV_GZ_no_timestamp(df,filename):
+    from gzip import GzipFile
+    from io import TextIOWrapper
+    with TextIOWrapper(GzipFile(filename, 'w', mtime=0), encoding='utf-8') as fd:
+        df.to_csv(fd,index=False,compression='gzip')
         
     return
