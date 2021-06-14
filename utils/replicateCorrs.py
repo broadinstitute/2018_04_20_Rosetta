@@ -27,7 +27,8 @@ def replicateCorrs(inDf,pertColName,featColNames,plotEnabled):
     """
     
     
-    df=inDf.interpolate();
+    df=inDf.copy()
+    df[featColNames]=inDf[featColNames].interpolate();
     uniqPert=df[pertColName].unique().tolist()
     repC=[]
     randC=[]
@@ -71,7 +72,7 @@ def replicateCorrs(inDf,pertColName,featColNames,plotEnabled):
 # #         randCorr = [x for x in randCorr if str(x) != 'nan']
 #         randC=randC+randCorr
 # #     print(randC)    
-    print('here2')
+    print('here3')
     randC_v2=[]    
     for i in range(1):
         uniqeSamplesFromEachPurt=inDf.groupby(pertColName)[featColNames].apply(lambda s: s.sample(1))

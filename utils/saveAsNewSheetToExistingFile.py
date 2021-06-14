@@ -9,7 +9,14 @@ def saveAsNewSheetToExistingFile(filename,newDF,newSheetName):
     if os.path.exists(filename):
 
         excel_book = pxl.load_workbook(filename)
+        
+#         print(excel_book.sheetnames)
+#         if 'cp-cd' in excel_book.sheetnames:
+#             print('ghalate')
 
+        if newSheetName in excel_book.sheetnames:
+            del excel_book[newSheetName]
+        
         with pd.ExcelWriter(filename, engine='openpyxl') as writer:
             # Your loaded workbook is set as the "base of work"
             writer.book = excel_book
@@ -17,7 +24,8 @@ def saveAsNewSheetToExistingFile(filename,newDF,newSheetName):
             # Loop through the existing worksheets in the workbook and map each title to\
             # the corresponding worksheet (that is, a dictionary where the keys are the\
             # existing worksheets' names and the values are the actual worksheets)
-            writer.sheets = {worksheet.title: worksheet for worksheet in excel_book.worksheets}
+            print(excel_book.worksheets)
+            writer.sheets = {worksheet.title: worksheet for worksheet in excel_book.worksheets if newSheetName not in worksheet}
 
             # Write the new data to the file without overwriting what already exists
             newDF.to_excel(writer, newSheetName)

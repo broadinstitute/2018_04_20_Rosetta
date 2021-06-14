@@ -7,13 +7,14 @@ from sklearn.metrics import pairwise_distances
 from utils.normalize_funcs import standardize_per_catX
 
 # def readMergedProfiles(dataset,profileType,nRep):
-def readMergedProfiles(dataset_rootDir,dataset,profileType,profileLevel,nRep):
+def readMergedProfiles(dataset_rootDir,dataset,profileType,profileLevel,nRep,highRepOverlapEnabled):
 
     #'dataset_name',['folder_name',[cp_pert_col_name,l1k_pert_col_name],[cp_control_val,l1k_control_val]]
-    ds_info_dict={'CDRP':['CDRPBIO-BBBC036-Bray',['Metadata_Sample_Dose','pert_sample_dose'],[['DMSO_0.04'],['DMSO_-666']]],
-                  'TAORF':['TA-ORF-BBBC037-Rohban',['Metadata_broad_sample','pert_id',],[['DMSO_0.04'],['DMSO_-666']]],
+    ds_info_dict={'CDRP':['CDRPBIO-BBBC036-Bray',['Metadata_Sample_Dose','pert_sample_dose'],[['DMSO'],['DMSO']]],
+                  'CDRP-bio':['CDRPBIO-BBBC036-Bray-bioactive',['Metadata_Sample_Dose','pert_sample_dose'],[['DMSO'],['DMSO']]],
+                  'TAORF':['TA-ORF-BBBC037-Rohban',['Metadata_broad_sample','pert_id',],[['DMSO'],['DMSO']]],
                   'LUAD':['LUAD-BBBC041-Caicedo',['x_mutation_status','allele'],[['DMSO_0.04'],['DMSO_-666']]],
-                  'LINCS':['LINCS-Pilot1',['Metadata_pert_id_dose','pert_id_dose'],[[np.nan],['DMSO_-666']]]}
+                  'LINCS':['LINCS-Pilot1',['Metadata_pert_id_dose','pert_id_dose'],[['DMSO'],['DMSO']]]}
     
     dataDir=dataset_rootDir+'/preprocessed_data/'+ds_info_dict[dataset][0]+'/'
         
@@ -88,7 +89,7 @@ def readMergedProfiles(dataset_rootDir,dataset,profileType,profileLevel,nRep):
     
 
     ###### remove perts with low rep corr
-    if 1:
+    if highRepOverlapEnabled:
         highRepPerts = highRepFinder(dataset) + ['DMSO'];
         cp_data_repLevel=cp_data_repLevel[cp_data_repLevel['PERT'].isin(highRepPerts)].reset_index()
         l1k_data_repLevel=l1k_data_repLevel[l1k_data_repLevel['PERT'].isin(highRepPerts)].reset_index()        
@@ -103,6 +104,7 @@ def readMergedProfiles(dataset_rootDir,dataset,profileType,profileLevel,nRep):
     ###### define metadata and merge treatment level profiles
 #     dataset:[[cp_columns],[l1k_columns]]
     meta_dict={'CDRP':[['Metadata_moa','Metadata_target'],['CPD_NAME','CPD_TYPE','CPD_SMILES']],
+               'CDRP-bio':[['Metadata_moa','Metadata_target'],['CPD_NAME','CPD_TYPE','CPD_SMILES']],
               'TAORF':[['Metadata_moa'],['pert_type']],
               'LUAD':[['Metadata_broad_sample_type','Metadata_pert_type'],[]],
               'LINCS':[['Metadata_moa', 'Metadata_alternative_moa'],['moa']]}
@@ -275,6 +277,8 @@ def highRepFinder(dataset):
     print('CP: from ',cpRepDF.shape[0],' to ',len(cpHighList))
     cpRepDF=repCorDF['l1k-'+dataset.lower()]
     l1kHighList=cpRepDF[cpRepDF['RepCor']>cpRepDF['Rand90Perc']]['Unnamed: 0'].tolist()
+#     print("l1kHighList",l1kHighList)
+#     print("cpHighList",cpHighList)    
     highRepPerts=list(set(l1kHighList) & set(cpHighList))
     print('l1k: from ',cpRepDF.shape[0],' to ',len(l1kHighList))
     print('CP and l1k high rep overlap: ',len(highRepPerts))
