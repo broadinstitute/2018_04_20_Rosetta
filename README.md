@@ -1,4 +1,4 @@
-# 2018_04_20_Rosetta
+# Rosetta
 Translating morphology data across single-cell modalities (CZI)
 
 ### In this repository:
